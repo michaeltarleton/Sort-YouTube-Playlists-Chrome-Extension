@@ -6,8 +6,8 @@ var sortParentChildren = function (parentSelector, childSelector) {
     console.error("Could not find " + playlistDivSelector);
     return;
   }
-  console.debug("Found " + playlistDivSelector);
-  console.log(playlistDiv);
+  // console.debug("Found " + playlistDivSelector);
+  // console.log(playlistDiv);
 
   const playlistSelector = "ytd-playlist-add-to-option-renderer";
   var playlistNodes = playlistDiv.querySelectorAll(
@@ -22,23 +22,23 @@ var sortParentChildren = function (parentSelector, childSelector) {
     console.error("Could not find " + playlistSelector);
     return;
   }
-  console.debug("Found " + playlistSelector);
-  console.log(playlistNodes);
+  // console.debug("Found " + playlistSelector);
+  // console.log(playlistNodes);
 
 
 
-  var sortedPlaylists = playlistsArray.sort((a, b) =>
-    a.innerText === b.innerText ? 0 : a.innerText > b.innerText ? 1 : -1
-  );
+  // var sortedPlaylists = playlistsArray.sort((a, b) =>
+  //   a.innerText === b.innerText ? 0 : a.innerText > b.innerText ? 1 : -1
+  // );
 
   // Clear the current DIV HTML
-  playlistDiv.innerHTML = "";
+  // playlistDiv.innerHTML = "";
 
   // Add the sorted array back in
-  console.log('sorting')
-  console.log(sortedPlaylists)
+  // console.log('sorting')
+  // console.log(sortedPlaylists)
 
-  sortedPlaylists.forEach((p) => playlistDiv.appendChild(p));
+  // sortedPlaylists.forEach((p) => playlistDiv.appendChild(p));
   console.log('done')
 };
 
@@ -59,9 +59,22 @@ var samplesort = function () {
   // saveButton.addEventListener("click", function () {
   //   sortParentChildren("#playlists", "ytd-playlist-add-to-option-renderer");
   // });
+
+  // wait 1 s
+  // check for mutations
+  // wait 1 s
+  // check for mutations
+  // if none; then sort; otherwise wait 1 s
+
+  // setTimeout(function() {
+
+  // }, 1000)
+
+
   saveButton.addEventListener("click", function () {
     let observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
+        console.debug(mutation)
         if (!mutation.addedNodes) return;
 
         for (let i = 0; i < mutation.addedNodes.length; i++) {

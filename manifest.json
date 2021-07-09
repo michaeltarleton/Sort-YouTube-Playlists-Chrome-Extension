@@ -1,0 +1,11 @@
+{
+  "name": "Google Chrome Sort YouTube Playlists",
+  "version": "0.0.1",
+  "description": "Sort YouTube playlists when adding a video to it!",
+  "permissions": ["activeTab", "scripting"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {},
+  "manifest_version": 3
+}

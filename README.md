@@ -13,5 +13,9 @@ This extension allows you to sort your YouTube playlist so adding is easier when
 ## Screenshots
 
 <p align="center">
+  <img src="images/screenshot-with-search.png">
+</p>
+
+<p align="center">
   <img src="images/screenshot.png">
 </p>

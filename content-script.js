@@ -1,4 +1,7 @@
 class YouTubeHelpers {
+  static maxInterval = 10;
+  static intervalDelay = 50;
+
   static findNode(selector) {
     var node = document.querySelector(selector);
 
@@ -11,16 +14,45 @@ class YouTubeHelpers {
     return node;
   }
 
-  static findNodes(selector) {
-    var node = document.querySelectorAll(selector);
+  static setIntervalAsync(func, delay, tries) {
+    return new Promise((resolve, reject) => {
+      let intervalCount = 0;
+      const interval = setInterval(() => {
+        if (intervalCount++ >= tries) {
+          clearInterval(interval);
+          return reject();
+        }
 
-    if (!node) {
-      throw "Could not find " + selector;
-    }
+        const result = func();
 
-    console.debug("Found " + selector);
+        clearInterval(interval);
+        return resolve(result);
+      }, delay);
+    });
+  }
 
-    return node;
+  static async findNodes(selector) {
+    const func = () => {
+      var node = document.querySelectorAll(selector);
+
+      if (!node) {
+        throw "Could not find " + selector;
+      }
+
+      if (node.length == 0) {
+        return;
+      }
+
+      console.debug("Found " + selector);
+
+      return node;
+    };
+
+    return await YouTubeHelpers.setIntervalAsync(
+      func,
+      this.intervalDelay,
+      this.maxInterval
+    );
   }
 
   static findChildNodes(parentNode, childSelector) {
@@ -57,10 +89,16 @@ const sortAndUpdateParentChildren = function (parentSelector, childSelector) {
   console.debug("Done adding sorted children");
 };
 
-const addEventListenerToSaveButton = function () {
+const addEventListenerToSaveButton = async () => {
   console.debug("Running YouTube sorter...");
   const selector = "#menu-container ytd-button-renderer";
-  const menuButtons = YouTubeHelpers.findNodes(selector);
+
+  // setInterval(async () => {
+  //   console.trace(await YouTubeHelpers.findNodes(selector));
+  // }, 2000);
+
+  const menuButtons = await YouTubeHelpers.findNodes(selector);
+  console.log(menuButtons);
   const saveButton = [].slice
     .call(menuButtons, 0)
     .find((p) => p.innerText.toLowerCase() === "save");
@@ -89,14 +127,14 @@ const addEventListenerToSaveButton = function () {
     setTimeout(() => {
       const interval = setInterval(() => {
         try {
-          console.debug('Waiting for all playlists to load...')
+          console.debug("Waiting for all playlists to load...");
           if (currentIntervalCount >= intervalMax) {
             console.debug("Reached the end of the line...");
             clearInterval(interval);
             return;
           }
 
-          const playlistDiv = YouTubeHelpers.findNode(playlistDivSelector)
+          const playlistDiv = YouTubeHelpers.findNode(playlistDivSelector);
 
           if (!playlistDiv) {
             console.debug("Could not find the playlist div...");
@@ -107,10 +145,7 @@ const addEventListenerToSaveButton = function () {
             // stop watching observer
             observer.disconnect();
             console.debug("Sorting the playlists...");
-            sortAndUpdateParentChildren(
-              playlistDivSelector,
-              playlistsSelector
-            );
+            sortAndUpdateParentChildren(playlistDivSelector, playlistsSelector);
 
             // Stop loop
             clearInterval(interval);
@@ -128,4 +163,6 @@ const addEventListenerToSaveButton = function () {
   });
 };
 
-addEventListenerToSaveButton();
+addEventListenerToSaveButton().finally(() => {
+  console.debug("Done");
+});

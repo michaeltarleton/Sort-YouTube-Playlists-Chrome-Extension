@@ -7,5 +7,11 @@
     "service_worker": "background.js"
   },
   "action": {},
-  "manifest_version": 3
+  "manifest_version": 3,
+  "content_scripts": [
+    {
+      "matches": ["https://*.youtube.com/*"],
+      "js": ["content-script.js"]
+    }
+  ]
 }

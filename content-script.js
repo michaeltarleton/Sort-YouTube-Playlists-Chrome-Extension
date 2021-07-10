@@ -102,34 +102,8 @@ class YouTubeHelpers {
 
       console.debug("Found " + selector);
 
-    /**
-     * Async version of setInterval
-     * @param {Function} func
-     * @param {Number} delay
-     * @param {Number} tries
-     * @returns {Promise<any>}
-     */
-    static setIntervalAsync(func, delay, tries) {
-        return new Promise((resolve, reject) => {
-            let intervalCount = 0;
-            const interval = setInterval(() => {
-                if (intervalCount++ >= tries) {
-                    clearInterval(interval);
-                    return reject();
-                }
-
-                try {
-                    const result = func();
-                    if (result) {
-                        clearInterval(interval);
-                        return resolve(result);
-                    }
-                } catch (e) {
-                    reject(e);
-                }
-            }, delay);
-        });
-    }
+      return node;
+    };
 
     return await YouTubeHelpers.setIntervalAsync(
       func,
@@ -147,51 +121,17 @@ class YouTubeHelpers {
   static findChildNodes(parentNode, childSelector) {
     var childNodes = parentNode.querySelectorAll(childSelector);
 
-    /**
-     * Finds all the nodes based on a selector
-     * @param {String} selector
-     * @returns {Promise<NodeListOf<Element>>}
-     */
-    static async findNodes(selector) {
-        const func = () => {
-            var node = document.querySelectorAll(selector);
-
-            if (!node) {
-                throw "Could not find " + selector;
-            }
-
-            if (node.length == 0) {
-                return;
-            }
-
-            return node;
-        };
-
-        return await YouTubeHelpers.setIntervalAsync(
-            func,
-            this.intervalDelay,
-            this.maxInterval
-        );
+    if (!childNodes || childNodes.length == 0) {
+      throw "Could not find " + childSelector;
     }
+    console.debug("Found children" + childSelector);
 
-    /**
-     * Finds all children for a parent node
-     * @param {Element} parentNode Node to select children from
-     * @param {String} childSelector Child selector
-     * @returns {NodeListOf<Element>}
-     */
-    static findChildNodes(parentNode, childSelector) {
-        var childNodes = parentNode.querySelectorAll(childSelector);
+    return childNodes;
+  }
 
-        if (!childNodes || childNodes.length == 0) {
-            throw "Could not find " + childSelector;
-        }
-        return childNodes;
-    }
-
-    static clearNodeChildren(node) {
-        node.innerHTML = "";
-    }
+  static clearNodeChildren(node) {
+    node.innerHTML = "";
+  }
 }
 
 /**
@@ -202,19 +142,21 @@ class YouTubeHelpers {
  * @param {String} childSelector
  */
 const sortAndUpdateParentChildren = function (parentSelector, childSelector) {
-    const parentNode = YouTubeHelpers.findNode(parentSelector);
-    const childNodes = YouTubeHelpers.findChildNodes(parentNode, childSelector);
+  const parentNode = YouTubeHelpers.findNode(parentSelector);
+  const childNodes = YouTubeHelpers.findChildNodes(parentNode, childSelector);
 
-    const childNodesArray = [].slice.call(childNodes, 0);
-    const sortedChildNodesArray = childNodesArray.sort((a, b) =>
-        a.innerText === b.innerText ? 0 : a.innerText > b.innerText ? 1 : -1
-    );
+  console.debug("sorting children");
+  const childNodesArray = [].slice.call(childNodes, 0);
+  const sortedChildNodesArray = childNodesArray.sort((a, b) =>
+    a.innerText === b.innerText ? 0 : a.innerText > b.innerText ? 1 : -1
+  );
 
-    // Clear the current DIV HTML
-    YouTubeHelpers.clearNodeChildren(parentNode);
+  // Clear the current DIV HTML
+  YouTubeHelpers.clearNodeChildren(parentNode);
 
-    // Add the sorted array back in
-    sortedChildNodesArray.forEach((p) => parentNode.appendChild(p));
+  // Add the sorted array back in
+  sortedChildNodesArray.forEach((p) => parentNode.appendChild(p));
+  console.debug("Done adding sorted children");
 };
 /**
  * Adds the event listener to the "SAVE" button on YouTube.

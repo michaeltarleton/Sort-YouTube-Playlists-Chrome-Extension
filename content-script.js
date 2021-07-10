@@ -5,41 +5,37 @@ var sortParentChildren = function (parentSelector, childSelector) {
     console.error("Could not find " + parentSelector);
     return;
   }
-  // console.debug("Found " + parentSelector);
-  // console.log(parentNode);
+  console.debug("Found " + parentSelector);
 
   var childNodes = parentNode.querySelectorAll(childSelector);
-  var childNodesArray = Array.prototype.slice.call(childNodes, 0);
+  var childNodesArray = [].slice.call(childNodes, 0);
 
   if (!childNodes || childNodes.length == 0) {
     console.error("Could not find " + childSelector);
     return;
   }
-  // console.debug("Found " + childSelector);
-  // console.log(childNodes);
+  console.debug("Found " + childSelector);
 
-  // var sortedChildNodesArray = childNodesArray.sort((a, b) =>
-  //   a.innerText === b.innerText ? 0 : a.innerText > b.innerText ? 1 : -1
-  // );
+  console.debug("sorting children");
+  var sortedChildNodesArray = childNodesArray.sort((a, b) =>
+    a.innerText === b.innerText ? 0 : a.innerText > b.innerText ? 1 : -1
+  );
 
   // Clear the current DIV HTML
-  // parentNode.innerHTML = "";
+  parentNode.innerHTML = "";
 
   // Add the sorted array back in
-  // console.log('sorting')
-  // console.log(sortedChildNodesArray)
-
-  // sortedChildNodesArray.forEach((p) => parentNode.appendChild(p));
-  console.log("done");
+  sortedChildNodesArray.forEach((p) => parentNode.appendChild(p));
+  console.log("Done adding sorted children");
 };
 
 var run = function () {
-  console.debug("samplesort called");
+  console.debug("Running YouTube sorter...");
   const selector = "#menu-container ytd-button-renderer";
   const menuButtons = document.querySelectorAll(selector);
-  const saveButton = Array.from(menuButtons).find(
-    (p) => p.innerText.toLowerCase() === "save"
-  );
+  const saveButton = [].slice
+    .call(menuButtons, 0)
+    .find((p) => p.innerText.toLowerCase() === "save");
 
   if (!saveButton) {
     console.error("Could not find " + selector);

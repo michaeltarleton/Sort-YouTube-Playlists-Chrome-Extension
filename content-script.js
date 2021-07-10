@@ -66,15 +66,16 @@ const addEventListenerToSaveButton = function () {
     .find((p) => p.innerText.toLowerCase() === "save");
 
   saveButton.addEventListener("click", function () {
-    const initialDelay = 1000;
-    const intervalDelay = 250;
+    const initialDelay = 500;
+    const intervalDelay = 100;
     const intervalMax = 10;
     let currentIntervalCount = 0;
     let currentMutationsCount = 0;
     let nextMutationsCount = 0;
+    const playlistDivSelector = "#playlists";
+    const playlistsSelector = "ytd-playlist-add-to-option-renderer";
 
     const observer = new MutationObserver((mutations) => {
-      // console.debug("mutations found");
       nextMutationsCount += mutations.length;
     });
 
@@ -88,14 +89,14 @@ const addEventListenerToSaveButton = function () {
     setTimeout(() => {
       const interval = setInterval(() => {
         try {
+          console.debug('Waiting for all playlists to load...')
           if (currentIntervalCount >= intervalMax) {
             console.debug("Reached the end of the line...");
             clearInterval(interval);
             return;
           }
 
-          const playlistDivSelector = "#playlists";
-          const playlistDiv = document.querySelector(playlistDivSelector);
+          const playlistDiv = YouTubeHelpers.findNode(playlistDivSelector)
 
           if (!playlistDiv) {
             console.debug("Could not find the playlist div...");
@@ -105,10 +106,10 @@ const addEventListenerToSaveButton = function () {
           if (currentMutationsCount == nextMutationsCount) {
             // stop watching observer
             observer.disconnect();
-            console.debug("Sorting the playlists");
+            console.debug("Sorting the playlists...");
             sortAndUpdateParentChildren(
-              "#playlists",
-              "ytd-playlist-add-to-option-renderer"
+              playlistDivSelector,
+              playlistsSelector
             );
 
             // Stop loop

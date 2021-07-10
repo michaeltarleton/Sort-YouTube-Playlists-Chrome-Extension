@@ -128,6 +128,15 @@ class YouTubeHelpers {
     static clearNodeChildren(node) {
         node.innerHTML = ''
     }
+    // TODO: Add doc
+    static updateParentChildren = (parentNode, childNodes) => {
+        // Clear the current DIV HTML
+        YouTubeHelpers.clearNodeChildren(parentNode)
+
+        // Add the sorted array back in
+        childNodes.forEach((p) => parentNode.appendChild(p))
+        console.debug('Done replacing children!')
+    }
 }
 
 /**
@@ -146,14 +155,58 @@ const sortAndUpdateParentChildren = function (parentSelector, childSelector) {
     const sortedChildNodesArray = childNodesArray.sort((a, b) =>
         a.innerText === b.innerText ? 0 : a.innerText > b.innerText ? 1 : -1
     )
-
-    // Clear the current DIV HTML
-    YouTubeHelpers.clearNodeChildren(parentNode)
-
-    // Add the sorted array back in
-    sortedChildNodesArray.forEach((p) => parentNode.appendChild(p))
-    console.debug('Done adding sorted children')
+    YouTubeHelpers.updateParentChildren(parentNode, sortedChildNodesArray)
 }
+
+/**
+ * Finds the playlist box and adds a search box to it
+ * @param {String} playlistDivSelector
+ * @param {String} playlistsSelector
+ */
+const addSearchField = function (playlistDivSelector, playlistsSelector) {
+    // Find playlist DIV
+    const playlistsNode = YouTubeHelpers.findNode(playlistDivSelector)
+    // Find all the children
+    const childNodes = YouTubeHelpers.findChildNodes(
+        playlistsNode,
+        playlistsSelector
+    )
+    // Copy the children un-mutated to another array
+    /** @type {any[]} */
+    const originalChildNodes = [].slice.call(childNodes, 0)
+
+    // Create the search box and attach to top of playlist
+    const searchBar = document.createElement('input')
+    searchBar.placeholder = 'Search...'
+
+    // TODO: Style the search box
+    searchBar.classList.add('style-scope')
+    searchBar.classList.add('tp-yt-paper-input')
+
+    // Create keyup event to trigger search
+    const search = (event) => {
+        event.preventDefault()
+        console.log(event)
+        const currentValue = event.target.value
+        console.log(currentValue)
+        console.log(originalChildNodes.length)
+        const filteredList = originalChildNodes.filter((p) =>
+            p.innerText
+                .trim()
+                .toLowerCase()
+                .includes(currentValue.trim().toLowerCase())
+        )
+        console.log(filteredList.length)
+        console.log(filteredList.map((p) => p.innerText))
+        YouTubeHelpers.updateParentChildren(playlistsNode, filteredList)
+    }
+
+    searchBar.addEventListener('keyup', search)
+
+    // Insert it before the playlist
+    playlistsNode.parentNode.insertBefore(searchBar, playlistsNode)
+}
+
 /**
  * Adds the event listener to the "SAVE" button on YouTube.
  * Right now playlists come back unsorted but this allows for them to
@@ -211,6 +264,8 @@ const addEventListenerToSaveButton = async () => {
                     playlistDivSelector,
                     playlistsSelector
                 )
+
+                addSearchField(playlistDivSelector, playlistsSelector)
 
                 return true
             }

@@ -66,6 +66,8 @@ const addEventListenerToSaveButton = function () {
     .find((p) => p.innerText.toLowerCase() === "save");
 
   saveButton.addEventListener("click", function () {
+    const initialDelay = 1000;
+    const intervalDelay = 250;
     const intervalMax = 10;
     let currentIntervalCount = 0;
     let currentMutationsCount = 0;
@@ -85,38 +87,43 @@ const addEventListenerToSaveButton = function () {
 
     setTimeout(() => {
       const interval = setInterval(() => {
-        if (currentIntervalCount >= intervalMax) {
-          console.debug("Reached the end of the line...");
+        try {
+          if (currentIntervalCount >= intervalMax) {
+            console.debug("Reached the end of the line...");
+            clearInterval(interval);
+            return;
+          }
+
+          const playlistDivSelector = "#playlists";
+          const playlistDiv = document.querySelector(playlistDivSelector);
+
+          if (!playlistDiv) {
+            console.debug("Could not find the playlist div...");
+            return;
+          }
+
+          if (currentMutationsCount == nextMutationsCount) {
+            // stop watching observer
+            observer.disconnect();
+            console.debug("Sorting the playlists");
+            sortAndUpdateParentChildren(
+              "#playlists",
+              "ytd-playlist-add-to-option-renderer"
+            );
+
+            // Stop loop
+            clearInterval(interval);
+          }
+
+          // Update current count
+          currentMutationsCount = nextMutationsCount;
+          // Increment interval count
+          currentIntervalCount++;
+        } catch {
           clearInterval(interval);
-          return;
         }
-
-        const playlistDivSelector = "#playlists";
-        const playlistDiv = document.querySelector(playlistDivSelector);
-
-        if (!playlistDiv) {
-          console.debug("Could not find the playlist div...");
-          return;
-        }
-
-        if (currentMutationsCount == nextMutationsCount) {
-          // stop watching observer
-          observer.disconnect();
-          console.debug("Sorting the playlists");
-          sortAndUpdateParentChildren(
-            "#playlists",
-            "ytd-playlist-add-to-option-renderer"
-          );
-          // Stop loop
-          clearInterval(interval);
-        }
-
-        // Update current count
-        currentMutationsCount = nextMutationsCount;
-        // Increment interval count
-        currentIntervalCount++;
-      }, 1000);
-    }, 1000);
+      }, intervalDelay);
+    }, initialDelay);
   });
 };
 

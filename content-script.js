@@ -1,7 +1,11 @@
 class YouTubeHelpers {
   static maxInterval = 10;
   static intervalDelay = 50;
-
+  /**
+   * Returns an element from the DOM
+   * @param {string} selector
+   * @returns {Element}
+   */
   static findNode(selector) {
     var node = document.querySelector(selector);
 
@@ -13,7 +17,13 @@ class YouTubeHelpers {
 
     return node;
   }
-
+  /**
+   * Async version of setInterval
+   * @param {Function} func
+   * @param {Number} delay
+   * @param {Number} tries
+   * @returns {Promise<any>}
+   */
   static setIntervalAsync(func, delay, tries) {
     return new Promise((resolve, reject) => {
       let intervalCount = 0;
@@ -32,7 +42,7 @@ class YouTubeHelpers {
           const result = func();
           console.debug(`Done Running func`, result);
 
-          if(result) {
+          if (result) {
             clearInterval(interval);
             return resolve(result);
           }
@@ -42,7 +52,12 @@ class YouTubeHelpers {
       }, delay);
     });
   }
-
+  /**
+   * Async version of setTimeout
+   * @param {Function} func
+   * @param {Number} delay
+   * @returns {Promise<any>}
+   */
   static setTimeoutAsync(func, delay) {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
@@ -55,13 +70,24 @@ class YouTubeHelpers {
       }, delay);
     });
   }
-
+  /**
+   * Combines setTimeout() and setInterval()
+   * @param {Function} func
+   * @param {Number} timeout (ms)
+   * @param {Number} interval (ms)
+   * @param {Number} tries Max number of tries
+   * @returns {Promise<any>}
+   */
   static async setTimeoutIntervalAsync(func, timeout, interval, tries) {
     return await YouTubeHelpers.setTimeoutAsync(async () => {
       return await YouTubeHelpers.setIntervalAsync(func, interval, tries);
     }, timeout);
   }
-
+  /**
+   * Finds all the nodes based on a selector
+   * @param {String} selector
+   * @returns {Promise<NodeListOf<Element>>}
+   */
   static async findNodes(selector) {
     const func = () => {
       var node = document.querySelectorAll(selector);
@@ -86,6 +112,12 @@ class YouTubeHelpers {
     );
   }
 
+  /**
+   * Finds all children for a parent node
+   * @param {Element} parentNode Node to select children from
+   * @param {String} childSelector Child selector
+   * @returns {NodeListOf<Element>}
+   */
   static findChildNodes(parentNode, childSelector) {
     var childNodes = parentNode.querySelectorAll(childSelector);
 
@@ -102,6 +134,13 @@ class YouTubeHelpers {
   }
 }
 
+/**
+ * Finds a parent element, then its children.
+ * It sorts its children, clears the parent's children, re-adds
+ * sorted children back to parent.
+ * @param {String} parentSelector
+ * @param {String} childSelector
+ */
 const sortAndUpdateParentChildren = function (parentSelector, childSelector) {
   const parentNode = YouTubeHelpers.findNode(parentSelector);
   const childNodes = YouTubeHelpers.findChildNodes(parentNode, childSelector);
@@ -119,70 +158,79 @@ const sortAndUpdateParentChildren = function (parentSelector, childSelector) {
   sortedChildNodesArray.forEach((p) => parentNode.appendChild(p));
   console.debug("Done adding sorted children");
 };
-
+/**
+ * Adds the event listener to the "SAVE" button on YouTube.
+ * Right now playlists come back unsorted but this allows for them to
+ * come back sorted so finding them is easier.
+ */
 const addEventListenerToSaveButton = async () => {
   console.debug("Running YouTube sorter...");
-  
+
   const selector = "#menu-container ytd-button-renderer";
   const menuButtons = await YouTubeHelpers.findNodes(selector);
   const saveButton = [].slice
     .call(menuButtons, 0)
     .find((p) => p.innerText.toLowerCase() === "save");
 
-  saveButton.addEventListener("click", async function () {
-    const timeoutDelay = 500;
-    const intervalDelay = 10;
-    const intervalMax = 50;
-    let currentMutationsCount = 0;
-    let nextMutationsCount = 0;
-    const playlistDivSelector = "#playlists";
-    const playlistsSelector = "ytd-playlist-add-to-option-renderer";
+  +(
+    // Run this when the "SAVE" button is clicked
+    saveButton.addEventListener("click", async function () {
+      const timeoutDelay = 500;
+      const intervalDelay = 10;
+      const intervalMax = 50;
+      let currentMutationsCount = 0;
+      let nextMutationsCount = 0;
+      const playlistDivSelector = "#playlists";
+      const playlistsSelector = "ytd-playlist-add-to-option-renderer";
 
-    const observer = new MutationObserver((mutations) => {
-      nextMutationsCount += mutations.length;
-    });
+      const observer = new MutationObserver((mutations) => {
+        nextMutationsCount += mutations.length;
+      });
 
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-      attributes: false,
-      characterData: false,
-    });
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: false,
+        characterData: false,
+      });
 
-    const func = () => {
-      console.debug("Waiting for all playlists to load...");
+      const func = () => {
+        console.debug("Waiting for all playlists to load...");
 
-      const playlistDiv = YouTubeHelpers.findNode(playlistDivSelector);
+        const playlistDiv = YouTubeHelpers.findNode(playlistDivSelector);
 
-      if (!playlistDiv) {
-        console.debug("Could not find the playlist div...");
-        return;
-      }
+        if (!playlistDiv) {
+          console.debug("Could not find the playlist div...");
+          return;
+        }
 
-      if (currentMutationsCount == nextMutationsCount) {
-        // stop watching observer
-        observer.disconnect();
-        console.debug("Sorting the playlists...");
-        sortAndUpdateParentChildren(playlistDivSelector, playlistsSelector);
+        if (currentMutationsCount == nextMutationsCount) {
+          // stop watching observer
+          observer.disconnect();
+          console.debug("Sorting the playlists...");
+          sortAndUpdateParentChildren(playlistDivSelector, playlistsSelector);
 
-        return true;
-      }
+          return true;
+        }
 
-      // Update current count
-      currentMutationsCount = nextMutationsCount;
+        // Update current count
+        currentMutationsCount = nextMutationsCount;
 
-      return false;
-    };
+        return false;
+      };
 
-    await YouTubeHelpers.setTimeoutIntervalAsync(
-      func,
-      timeoutDelay,
-      intervalDelay,
-      intervalMax
-    );
-  });
+      await YouTubeHelpers.setTimeoutIntervalAsync(
+        func,
+        timeoutDelay,
+        intervalDelay,
+        intervalMax
+      );
+    })
+  );
 };
-
+/**
+ * Run the program
+ */
 addEventListenerToSaveButton().finally(() => {
   console.debug("Done");
 });

@@ -1,48 +1,39 @@
 var sortParentChildren = function (parentSelector, childSelector) {
-  const playlistDivSelector = "#playlists";
-  var playlistDiv = document.querySelector(playlistDivSelector);
+  var parentNode = document.querySelector(parentSelector);
 
-  if(!playlistDiv){
-    console.error("Could not find " + playlistDivSelector);
+  if (!parentNode) {
+    console.error("Could not find " + parentSelector);
     return;
   }
-  // console.debug("Found " + playlistDivSelector);
-  // console.log(playlistDiv);
+  // console.debug("Found " + parentSelector);
+  // console.log(parentNode);
 
-  const playlistSelector = "ytd-playlist-add-to-option-renderer";
-  var playlistNodes = playlistDiv.querySelectorAll(
-    playlistSelector
-  );
-  var playlistsArray = Array.prototype.slice.call(playlistNodes, 0);
+  var childNodes = parentNode.querySelectorAll(childSelector);
+  var childNodesArray = Array.prototype.slice.call(childNodes, 0);
 
-
-
-  
-  if (!playlistNodes || playlistNodes.length == 0) {
-    console.error("Could not find " + playlistSelector);
+  if (!childNodes || childNodes.length == 0) {
+    console.error("Could not find " + childSelector);
     return;
   }
-  // console.debug("Found " + playlistSelector);
-  // console.log(playlistNodes);
+  // console.debug("Found " + childSelector);
+  // console.log(childNodes);
 
-
-
-  // var sortedPlaylists = playlistsArray.sort((a, b) =>
+  // var sortedChildNodesArray = childNodesArray.sort((a, b) =>
   //   a.innerText === b.innerText ? 0 : a.innerText > b.innerText ? 1 : -1
   // );
 
   // Clear the current DIV HTML
-  // playlistDiv.innerHTML = "";
+  // parentNode.innerHTML = "";
 
   // Add the sorted array back in
   // console.log('sorting')
-  // console.log(sortedPlaylists)
+  // console.log(sortedChildNodesArray)
 
-  // sortedPlaylists.forEach((p) => playlistDiv.appendChild(p));
-  console.log('done')
+  // sortedChildNodesArray.forEach((p) => parentNode.appendChild(p));
+  console.log("done");
 };
 
-var samplesort = function () {
+var run = function () {
   console.debug("samplesort called");
   const selector = "#menu-container ytd-button-renderer";
   const menuButtons = document.querySelectorAll(selector);
@@ -54,7 +45,7 @@ var samplesort = function () {
     console.error("Could not find " + selector);
     return;
   }
-  
+
   console.debug("Found " + selector);
   // saveButton.addEventListener("click", function () {
   //   sortParentChildren("#playlists", "ytd-playlist-add-to-option-renderer");
@@ -66,28 +57,15 @@ var samplesort = function () {
   // check for mutations
   // if none; then sort; otherwise wait 1 s
 
-  // setTimeout(function() {
-
-  // }, 1000)
-
-
   saveButton.addEventListener("click", function () {
-    let observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        console.debug(mutation)
-        if (!mutation.addedNodes) return;
+    let currentMutationsCount = 0;
+    let nextMutationsCount = 0;
+    let currentIntervalCount = 0;
+    let intervalMax = 10;
 
-        for (let i = 0; i < mutation.addedNodes.length; i++) {
-          // do things to your newly added nodes here
-          let node = mutation.addedNodes[i];
-          sortParentChildren(
-            "#playlists",
-            "ytd-playlist-add-to-option-renderer"
-          );
-        }
-        // stop watching using:
-        observer.disconnect();
-      });
+    let observer = new MutationObserver((mutations) => {
+      // console.debug("mutations found");
+      nextMutationsCount += mutations.length;
     });
 
     observer.observe(document.body, {
@@ -97,14 +75,41 @@ var samplesort = function () {
       characterData: false,
     });
 
-    
+    setTimeout(() => {
+      let interval = setInterval(() => {
+        if (currentIntervalCount >= intervalMax) {
+          console.debug("Reached the end of the line...");
+          clearInterval(interval);
+          return;
+        }
+
+        const playlistDivSelector = "#playlists";
+        var playlistDiv = document.querySelector(playlistDivSelector);
+
+        if (!playlistDiv) {
+          console.debug("Could not find the playlist div...");
+          return;
+        }
+
+        if (currentMutationsCount == nextMutationsCount) {
+          // stop watching observer
+          observer.disconnect();
+          console.debug("Sorting the playlists");
+          sortParentChildren(
+            "#playlists",
+            "ytd-playlist-add-to-option-renderer"
+          );
+          // Stop loop
+          clearInterval(interval);
+        }
+
+        // Update current count
+        currentMutationsCount = nextMutationsCount;
+        // Increment interval count
+        currentIntervalCount++;
+      }, 1000);
+    }, 1000);
   });
 };
 
-samplesort();
-
-
-
-
-
-
+run();

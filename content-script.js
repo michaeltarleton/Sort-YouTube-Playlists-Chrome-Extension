@@ -1,6 +1,4 @@
 class YouTubeHelpers {
-  static maxInterval = 10;
-  static intervalDelay = 50;
   /**
    * Returns an element from the DOM
    * @param {string} selector
@@ -87,8 +85,10 @@ class YouTubeHelpers {
    * Finds all the nodes based on a selector
    * @param {String} selector
    * @returns {Promise<NodeListOf<Element>>}
+   * @param {number} delay
+   * @param {number} tries
    */
-  static async findNodes(selector) {
+  static async findNodes(selector, delay, tries) {
     const func = () => {
       var node = document.querySelectorAll(selector);
 
@@ -107,8 +107,8 @@ class YouTubeHelpers {
 
     return await YouTubeHelpers.setIntervalAsync(
       func,
-      this.intervalDelay,
-      this.maxInterval
+      delay,
+      tries
     );
   }
 
@@ -165,9 +165,16 @@ const sortAndUpdateParentChildren = function (parentSelector, childSelector) {
  */
 const addEventListenerToSaveButton = async () => {
   console.debug("Running YouTube sorter...");
+  const timeoutDelay = 500;
+  const intervalDelay = 10;
+  const tries = 200;
 
   const selector = "#menu-container ytd-button-renderer";
-  const menuButtons = await YouTubeHelpers.findNodes(selector);
+  const menuButtons = await YouTubeHelpers.findNodes(
+    selector,
+    intervalDelay,
+    tries
+  );
   const saveButton = [].slice
     .call(menuButtons, 0)
     .find((p) => p.innerText.toLowerCase() === "save");
@@ -175,9 +182,6 @@ const addEventListenerToSaveButton = async () => {
   +(
     // Run this when the "SAVE" button is clicked
     saveButton.addEventListener("click", async function () {
-      const timeoutDelay = 500;
-      const intervalDelay = 10;
-      const intervalMax = 50;
       let currentMutationsCount = 0;
       let nextMutationsCount = 0;
       const playlistDivSelector = "#playlists";
@@ -223,7 +227,7 @@ const addEventListenerToSaveButton = async () => {
         func,
         timeoutDelay,
         intervalDelay,
-        intervalMax
+        tries
       );
     })
   );

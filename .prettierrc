@@ -1,4 +1,25 @@
 {
-  "tabWidth": 4,
-  "useTabs": false
+    "semi": false,
+    "tabWidth": 4,
+    "useTabs": false,
+    "singleQuote": true,
+    "trailingComma": "es5",
+    "overrides": [
+        {
+            "files": "*.json",
+            "options": {
+                "tabWidth": 2
+            }
+        },
+        {
+            "files": ".prettierrc",
+            "options": { "parser": "json", "tabWidth": 2 }
+        },
+        {
+            "files": ["*.html", "legacy/**/*.js"],
+            "options": {
+                "tabWidth": 4
+            }
+        }
+    ]
 }

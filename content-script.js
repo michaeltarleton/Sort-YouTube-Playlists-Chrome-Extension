@@ -1,65 +1,77 @@
-var sortParentChildren = function (parentSelector, childSelector) {
-  var parentNode = document.querySelector(parentSelector);
+class YouTubeHelpers {
+  static findNode(selector) {
+    var node = document.querySelector(selector);
 
-  if (!parentNode) {
-    console.error("Could not find " + parentSelector);
-    return;
+    if (!node) {
+      throw "Could not find " + selector;
+    }
+
+    console.debug("Found " + selector);
+
+    return node;
   }
-  console.debug("Found " + parentSelector);
 
-  var childNodes = parentNode.querySelectorAll(childSelector);
-  var childNodesArray = [].slice.call(childNodes, 0);
+  static findNodes(selector) {
+    var node = document.querySelectorAll(selector);
 
-  if (!childNodes || childNodes.length == 0) {
-    console.error("Could not find " + childSelector);
-    return;
+    if (!node) {
+      throw "Could not find " + selector;
+    }
+
+    console.debug("Found " + selector);
+
+    return node;
   }
-  console.debug("Found " + childSelector);
+
+  static findChildNodes(parentNode, childSelector) {
+    var childNodes = parentNode.querySelectorAll(childSelector);
+
+    if (!childNodes || childNodes.length == 0) {
+      throw "Could not find " + childSelector;
+    }
+    console.debug("Found children" + childSelector);
+
+    return childNodes;
+  }
+
+  static clearNodeChildren(node) {
+    node.innerHTML = "";
+  }
+}
+
+const sortAndUpdateParentChildren = function (parentSelector, childSelector) {
+  const parentNode = YouTubeHelpers.findNode(parentSelector);
+  const childNodes = YouTubeHelpers.findChildNodes(parentNode, childSelector);
 
   console.debug("sorting children");
-  var sortedChildNodesArray = childNodesArray.sort((a, b) =>
+  const childNodesArray = [].slice.call(childNodes, 0);
+  const sortedChildNodesArray = childNodesArray.sort((a, b) =>
     a.innerText === b.innerText ? 0 : a.innerText > b.innerText ? 1 : -1
   );
 
   // Clear the current DIV HTML
-  parentNode.innerHTML = "";
+  YouTubeHelpers.clearNodeChildren(parentNode);
 
   // Add the sorted array back in
   sortedChildNodesArray.forEach((p) => parentNode.appendChild(p));
   console.log("Done adding sorted children");
 };
 
-var run = function () {
+const addEventListenerToSaveButton = function () {
   console.debug("Running YouTube sorter...");
   const selector = "#menu-container ytd-button-renderer";
-  const menuButtons = document.querySelectorAll(selector);
+  const menuButtons = YouTubeHelpers.findNodes(selector);
   const saveButton = [].slice
     .call(menuButtons, 0)
     .find((p) => p.innerText.toLowerCase() === "save");
 
-  if (!saveButton) {
-    console.error("Could not find " + selector);
-    return;
-  }
-
-  console.debug("Found " + selector);
-  // saveButton.addEventListener("click", function () {
-  //   sortParentChildren("#playlists", "ytd-playlist-add-to-option-renderer");
-  // });
-
-  // wait 1 s
-  // check for mutations
-  // wait 1 s
-  // check for mutations
-  // if none; then sort; otherwise wait 1 s
-
   saveButton.addEventListener("click", function () {
+    const intervalMax = 10;
+    let currentIntervalCount = 0;
     let currentMutationsCount = 0;
     let nextMutationsCount = 0;
-    let currentIntervalCount = 0;
-    let intervalMax = 10;
 
-    let observer = new MutationObserver((mutations) => {
+    const observer = new MutationObserver((mutations) => {
       // console.debug("mutations found");
       nextMutationsCount += mutations.length;
     });
@@ -72,7 +84,7 @@ var run = function () {
     });
 
     setTimeout(() => {
-      let interval = setInterval(() => {
+      const interval = setInterval(() => {
         if (currentIntervalCount >= intervalMax) {
           console.debug("Reached the end of the line...");
           clearInterval(interval);
@@ -80,7 +92,7 @@ var run = function () {
         }
 
         const playlistDivSelector = "#playlists";
-        var playlistDiv = document.querySelector(playlistDivSelector);
+        const playlistDiv = document.querySelector(playlistDivSelector);
 
         if (!playlistDiv) {
           console.debug("Could not find the playlist div...");
@@ -91,7 +103,7 @@ var run = function () {
           // stop watching observer
           observer.disconnect();
           console.debug("Sorting the playlists");
-          sortParentChildren(
+          sortAndUpdateParentChildren(
             "#playlists",
             "ytd-playlist-add-to-option-renderer"
           );
@@ -108,4 +120,4 @@ var run = function () {
   });
 };
 
-run();
+addEventListenerToSaveButton();

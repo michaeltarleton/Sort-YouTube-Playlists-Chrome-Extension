@@ -18,17 +18,48 @@ class YouTubeHelpers {
     return new Promise((resolve, reject) => {
       let intervalCount = 0;
       const interval = setInterval(() => {
+        console.debug(`Trial: ${intervalCount}`);
         if (intervalCount++ >= tries) {
+          console.debug(
+            `intervalCount++ >= tries: ${intervalCount++ >= tries}`
+          );
           clearInterval(interval);
           return reject();
         }
 
-        const result = func();
+        try {
+          console.debug(`Running func`);
+          const result = func();
+          console.debug(`Done Running func`, result);
 
-        clearInterval(interval);
-        return resolve(result);
+          if(result) {
+            clearInterval(interval);
+            return resolve(result);
+          }
+        } catch (e) {
+          reject(e);
+        }
       }, delay);
     });
+  }
+
+  static setTimeoutAsync(func, delay) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        try {
+          const result = func();
+          return resolve(result);
+        } catch (e) {
+          return reject(e);
+        }
+      }, delay);
+    });
+  }
+
+  static async setTimeoutIntervalAsync(func, timeout, interval, tries) {
+    return await YouTubeHelpers.setTimeoutAsync(async () => {
+      return await YouTubeHelpers.setIntervalAsync(func, interval, tries);
+    }, timeout);
   }
 
   static async findNodes(selector) {
@@ -91,22 +122,17 @@ const sortAndUpdateParentChildren = function (parentSelector, childSelector) {
 
 const addEventListenerToSaveButton = async () => {
   console.debug("Running YouTube sorter...");
+  
   const selector = "#menu-container ytd-button-renderer";
-
-  // setInterval(async () => {
-  //   console.trace(await YouTubeHelpers.findNodes(selector));
-  // }, 2000);
-
   const menuButtons = await YouTubeHelpers.findNodes(selector);
   const saveButton = [].slice
     .call(menuButtons, 0)
     .find((p) => p.innerText.toLowerCase() === "save");
 
-  saveButton.addEventListener("click", function () {
-    const initialDelay = 500;
+  saveButton.addEventListener("click", async function () {
+    const timeoutDelay = 500;
     const intervalDelay = 10;
     const intervalMax = 50;
-    let currentIntervalCount = 0;
     let currentMutationsCount = 0;
     let nextMutationsCount = 0;
     const playlistDivSelector = "#playlists";
@@ -123,42 +149,37 @@ const addEventListenerToSaveButton = async () => {
       characterData: false,
     });
 
-    setTimeout(() => {
-      const interval = setInterval(() => {
-        try {
-          console.debug("Waiting for all playlists to load...");
-          if (currentIntervalCount >= intervalMax) {
-            console.debug("Reached the end of the line...");
-            clearInterval(interval);
-            return;
-          }
+    const func = () => {
+      console.debug("Waiting for all playlists to load...");
 
-          const playlistDiv = YouTubeHelpers.findNode(playlistDivSelector);
+      const playlistDiv = YouTubeHelpers.findNode(playlistDivSelector);
 
-          if (!playlistDiv) {
-            console.debug("Could not find the playlist div...");
-            return;
-          }
+      if (!playlistDiv) {
+        console.debug("Could not find the playlist div...");
+        return;
+      }
 
-          if (currentMutationsCount == nextMutationsCount) {
-            // stop watching observer
-            observer.disconnect();
-            console.debug("Sorting the playlists...");
-            sortAndUpdateParentChildren(playlistDivSelector, playlistsSelector);
+      if (currentMutationsCount == nextMutationsCount) {
+        // stop watching observer
+        observer.disconnect();
+        console.debug("Sorting the playlists...");
+        sortAndUpdateParentChildren(playlistDivSelector, playlistsSelector);
 
-            // Stop loop
-            clearInterval(interval);
-          }
+        return true;
+      }
 
-          // Update current count
-          currentMutationsCount = nextMutationsCount;
-          // Increment interval count
-          currentIntervalCount++;
-        } catch {
-          clearInterval(interval);
-        }
-      }, intervalDelay);
-    }, initialDelay);
+      // Update current count
+      currentMutationsCount = nextMutationsCount;
+
+      return false;
+    };
+
+    await YouTubeHelpers.setTimeoutIntervalAsync(
+      func,
+      timeoutDelay,
+      intervalDelay,
+      intervalMax
+    );
   });
 };
 

@@ -54,7 +54,7 @@ const sortAndUpdateParentChildren = function (parentSelector, childSelector) {
 
   // Add the sorted array back in
   sortedChildNodesArray.forEach((p) => parentNode.appendChild(p));
-  console.log("Done adding sorted children");
+  console.debug("Done adding sorted children");
 };
 
 const addEventListenerToSaveButton = function () {
@@ -67,8 +67,8 @@ const addEventListenerToSaveButton = function () {
 
   saveButton.addEventListener("click", function () {
     const initialDelay = 500;
-    const intervalDelay = 100;
-    const intervalMax = 10;
+    const intervalDelay = 10;
+    const intervalMax = 50;
     let currentIntervalCount = 0;
     let currentMutationsCount = 0;
     let nextMutationsCount = 0;

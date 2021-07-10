@@ -98,7 +98,6 @@ const addEventListenerToSaveButton = async () => {
   // }, 2000);
 
   const menuButtons = await YouTubeHelpers.findNodes(selector);
-  console.log(menuButtons);
   const saveButton = [].slice
     .call(menuButtons, 0)
     .find((p) => p.innerText.toLowerCase() === "save");

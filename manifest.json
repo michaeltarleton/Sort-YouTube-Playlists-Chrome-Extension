@@ -2,7 +2,7 @@
   "name": "Google Chrome Sort YouTube Playlists",
   "version": "0.1.0",
   "description": "Sort YouTube playlists when adding a video to it!",
-  "permissions": ["activeTab", "scripting"],
+  "permissions": [],
   "action": {},
   "manifest_version": 3,
   "content_scripts": [
